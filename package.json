@@ -1,0 +1,21 @@
+{
+  "name": "canvas-cloud",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Canvas Cloud — a local-first infinite whiteboard by BlueCloud",
+  "author": "BlueCloud AI Technologies",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 1441 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 1441",
+    "test": "node --test tests/*.test.mjs",
+    "desktop": "tauri dev",
+    "desktop:build": "tauri build"
+  },
+  "devDependencies": {
+    "vite": "8.3.5",
+    "@tauri-apps/cli": "2.12.4"
+  }
+}

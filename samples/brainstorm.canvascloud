@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "id": "870ab2dd-4b33-4d57-9c01-9841f7d71420",
+  "name": "A new idea",
+  "updatedAt": 1793747646975,
+  "nodes": [
+    {
+      "id": "2088bd6a-a4a5-402a-a2c7-fb2ba970f43a",
+      "type": "note",
+      "x": 328,
+      "y": 160,
+      "w": 220,
+      "h": 190,
+      "fill": "#fff0ac",
+      "stroke": "#c6a951",
+      "fontSize": 20,
+      "text": "What are we exploring?\n\nStart with a question."
+    },
+    {
+      "id": "c9fb4ace-200b-46ee-b708-29ea89d54c02",
+      "type": "rect",
+      "x": 658,
+      "y": 185,
+      "w": 220,
+      "h": 140,
+      "fill": "#e8e1f5",
+      "stroke": "#967cba",
+      "fontSize": 20,
+      "text": "Ideas worth trying"
+    },
+    {
+      "id": "914f650b-dd77-408b-b706-5d2b4c015f66",
+      "type": "ellipse",
+      "x": 988,
+      "y": 185,
+      "w": 220,
+      "h": 140,
+      "fill": "#dceee9",
+      "stroke": "#81a998",
+      "fontSize": 20,
+      "text": "The next small step"
+    },
+    {
+      "id": "61f3c314-0062-4a43-963a-667a65de6f62",
+      "type": "connector",
+      "from": "2088bd6a-a4a5-402a-a2c7-fb2ba970f43a",
+      "to": "c9fb4ace-200b-46ee-b708-29ea89d54c02",
+      "stroke": "#9a8aaa"
+    },
+    {
+      "id": "05f5874d-8789-468b-a324-f88a5b0119f9",
+      "type": "connector",
+      "from": "c9fb4ace-200b-46ee-b708-29ea89d54c02",
+      "to": "914f650b-dd77-408b-b706-5d2b4c015f66",
+      "stroke": "#9a8aaa"
+    }
+  ],
+  "view": {
+    "x": 0,
+    "y": 0,
+    "scale": 1
+  }
+}

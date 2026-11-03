@@ -1,0 +1,3 @@
+[build]
+# Keep the Windows desktop build usable on memory-constrained development PCs.
+jobs = 1
