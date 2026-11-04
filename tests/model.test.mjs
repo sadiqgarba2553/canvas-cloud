@@ -68,6 +68,8 @@ test("new changes invalidate redo history", () => {
 test("imports reject executable image data, invalid geometry, and duplicate identities", () => {
   for (const nodes of [
     [{ ...shape("a"), type: "image", src: "javascript:alert(1)" }],
+    [{ ...shape("a"), type: "image", src: "data:image/svg+xml,<svg onload='alert(1)'/>" }],
+    [{ ...shape("a"), type: "image", src: "https://example.com/tracker.png" }],
     [{ ...shape("a"), w: -20 }],
     [shape("a"), shape("a")],
   ]) {

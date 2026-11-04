@@ -23,10 +23,22 @@ async fn save_export(app: tauri::AppHandle, name: String, data: String, kind: St
     temporary.persist(path).map_err(|e| e.to_string())?;
     Ok(true)
 }
+#[tauri::command]
+async fn save_png_export(app: tauri::AppHandle, name: String, data: Vec<u8>) -> Result<bool, String> {
+    if data.len() > 50_000_000 || !data.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]) { return Err("Invalid or oversized PNG export".into()); }
+    let Some(file) = app.dialog().file().add_filter("PNG image", &["png"]).set_file_name(name).blocking_save_file() else { return Ok(false); };
+    let path = file.into_path().map_err(|e| e.to_string())?;
+    let parent = path.parent().ok_or("Invalid destination")?;
+    let mut temporary = tempfile::NamedTempFile::new_in(parent).map_err(|e| e.to_string())?;
+    temporary.write_all(&data).map_err(|e| e.to_string())?;
+    temporary.as_file().sync_all().map_err(|e| e.to_string())?;
+    temporary.persist(path).map_err(|e| e.to_string())?;
+    Ok(true)
+}
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![open_board_file, save_export])
+        .invoke_handler(tauri::generate_handler![open_board_file, save_export, save_png_export])
         .run(tauri::generate_context!())
         .expect("Canvas Cloud could not start");
 }

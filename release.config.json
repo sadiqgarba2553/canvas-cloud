@@ -1,0 +1,19 @@
+{
+  "appId": "canvas-cloud",
+  "repository": "sadiqgarba2553/canvas-cloud",
+  "version": "0.2.0",
+  "sourceName": "Canvas-Cloud",
+  "title": "Canvas Cloud 0.2.0 — Office expansion alpha",
+  "notes": "Canvas Cloud joins BlueCloud Office with its violet engraved squircle logo. Local boards, expanded shapes, ink, attached connectors, alignment, minimap, search, frames, editable tables and Kanban text, local comment replies, native backups, SVG/PNG export and print-to-PDF. Updated validation and atomic native export systems. No hosted collaboration or complete competitor parity.",
+  "localAssets": [
+    "releases/windows/canvas-cloud-0.2.0-win-x64.zip",
+    "releases/windows/Canvas-Cloud-0.2.0-x64-setup.exe"
+  ],
+  "unpackedDirectory": "releases/windows/managed-0.2.0",
+  "package": {
+    "name": "canvas-cloud-0.2.0-win-x64.zip",
+    "type": "zip",
+    "minimumLauncher": "0.8.0",
+    "executable": "canvas-cloud.exe"
+  }
+}

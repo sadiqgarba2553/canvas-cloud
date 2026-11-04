@@ -707,7 +707,8 @@ function inspector() {
       : "Move it on the board, or change its appearance below."
     : "Select something on the board to change its details.";
 
-  $("#object-text").value = n?.text || "";
+  $("#object-text").value = n ? objectText(n) : '';
+  $('#object-text').placeholder = n?.type === 'table' ? 'Separate cells with tabs and rows with new lines.' : n?.type === 'kanban' ? '# Column title\nCard text\n# Next column\nAnother card' : 'Write something…';
   $("#object-text").disabled = !n || ["pen", "highlighter", "connector", "image"].includes(n.type);
   $("#fill-color").disabled = !n || ["pen", "highlighter", "connector", "image", "text"].includes(n.type);
   $("#stroke-color").disabled = !n || ["text", "image"].includes(n.type);
@@ -729,17 +730,17 @@ function inspector() {
     (board.comments || []).forEach((c) => {
       const card = document.createElement("div");
       card.className = "comment-card";
-      card.innerHTML = `
-        <strong>${c.author || "Collaborator"}</strong><time>${new Date(c.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
-        <p>${c.text}</p>
-        <div class="comment-replies">
-          ${(c.replies || []).map((r) => `<p><b>${r.author}:</b> ${r.text}</p>`).join("")}
-        </div>
-        <div class="comment-reply-input">
-          <input type="text" placeholder="Reply…" data-comment-id="${c.id}" />
-          <button data-comment-reply="${c.id}">Post</button>
-        </div>
-      `;
+      const author = document.createElement('strong'); author.textContent = c.author || 'You';
+      const time = document.createElement('time'); time.textContent = new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const text = document.createElement('p'); text.textContent = c.text;
+      const replies = document.createElement('div'); replies.className = 'comment-replies';
+      for (const reply of c.replies || []) {
+        const paragraph = document.createElement('p'); paragraph.textContent = `${reply.author}: ${reply.text}`; replies.append(paragraph);
+      }
+      const inputRow = document.createElement('div'); inputRow.className = 'comment-reply-input';
+      const input = document.createElement('input'); input.type = 'text'; input.placeholder = 'Reply…'; input.dataset.commentId = c.id;
+      const post = document.createElement('button'); post.textContent = 'Post'; post.dataset.commentReply = c.id;
+      inputRow.append(input, post); card.append(author, time, text, replies, inputRow);
       commentsList.append(card);
     });
     $("#comment-count").textContent = String((board.comments || []).length);
@@ -751,6 +752,19 @@ function render() {
   inspector();
   $("#board-title").value = board.name;
 }
+
+$('#comments-list').addEventListener('click', event => {
+  const button = event.target.closest('[data-comment-reply]');
+  if (!button) return;
+  const input = button.parentElement.querySelector('input');
+  const text = input.value.trim();
+  const comment = board.comments.find(c => c.id === button.dataset.commentReply);
+  if (!text || !comment) return;
+  checkpoint();
+  comment.replies ||= [];
+  comment.replies.push({ author: 'You', text: text.slice(0, 50000), createdAt: Date.now() });
+  changed();
+});
 
 function renderLibrary() {
   const list = $("#board-list");
@@ -923,11 +937,35 @@ function addFirstNote() {
 
 function editText() {
   const n = primaryNode();
-  if (!n || ["pen", "highlighter", "connector", "image"].includes(n.type)) return;
-  $("#edit-text").value = n.text;
+  if (!n || n.locked || ["pen", "highlighter", "connector", "image"].includes(n.type)) return;
+  $("#edit-text").value = objectText(n);
+  $('#text-editor h2').textContent = n.type === 'table' ? 'Edit table — tab-separated cells' : n.type === 'kanban' ? 'Edit Kanban — # headings, one card per line' : 'Edit text';
   $("#text-editor").showModal();
   $("#edit-text").focus();
   $("#edit-text").select();
+}
+
+function objectText(n) {
+  if (n.type === 'table') return (n.data || []).map(row => row.join('\t')).join('\n');
+  if (n.type === 'kanban') return (n.columns || []).map(col => `# ${col.title}\n${(col.cards || []).map(card => typeof card === 'string' ? card : card.title).join('\n')}`).join('\n');
+  return n.type === 'frame' ? n.title || '' : n.text || '';
+}
+
+function setObjectText(n, value) {
+  if (n.locked) return;
+  if (n.type === 'table') {
+    const data = value.split('\n').slice(0, 50).map(line => line.split('\t').slice(0, 20));
+    n.rows = data.length; n.cols = Math.max(1, ...data.map(row => row.length));
+    n.data = data.map(row => Array.from({ length: n.cols }, (_, c) => row[c] || ''));
+  } else if (n.type === 'kanban') {
+    const columns = [];
+    for (const line of value.split('\n')) {
+      if (line.startsWith('# ') && columns.length < 20) columns.push({ id: uid(), title: line.slice(2), cards: [] });
+      else if (line.trim() && columns.length) columns[columns.length - 1].cards.push(line);
+    }
+    n.columns = columns;
+  } else if (n.type === 'frame') n.title = value;
+  else n.text = value;
 }
 
 // SVG canvas pointer interactions
@@ -1495,7 +1533,9 @@ function insertTemplate(key) {
 async function downloadData(content, type, extension) {
   if (window.__TAURI__?.core?.invoke) {
     try {
-      const saved = await window.__TAURI__.core.invoke("save_export", {
+      const saved = content instanceof Blob
+        ? await window.__TAURI__.core.invoke('save_png_export', { name: safeName() + extension, data: Array.from(new Uint8Array(await content.arrayBuffer())) })
+        : await window.__TAURI__.core.invoke("save_export", {
         name: safeName() + extension,
         data: content,
         kind: extension === ".svg" ? "svg" : "board",
@@ -1549,8 +1589,7 @@ async function exportSvg() {
     notify("Add something to the board before exporting.");
     return;
   }
-  await downloadData(svgStr, "image/svg+xml", ".svg");
-  notify("SVG exported successfully.");
+  if (await downloadData(svgStr, "image/svg+xml", ".svg")) notify("SVG exported successfully.");
 }
 
 async function exportPng() {
@@ -1560,6 +1599,9 @@ async function exportPng() {
     return;
   }
   const box = bounds(board.nodes);
+  if ((box.w + 80) * (box.h + 80) * 4 > 32000000 || box.w > 8000 || box.h > 8000) {
+    notify('This board is too large for a PNG. Export SVG instead.'); return;
+  }
   const img = new Image();
   const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -1574,11 +1616,11 @@ async function exportPng() {
     URL.revokeObjectURL(url);
     canvas.toBlob(async (pngBlob) => {
       if (pngBlob) {
-        await downloadData(pngBlob, "image/png", ".png");
-        notify("PNG exported.");
+        if (await downloadData(pngBlob, "image/png", ".png")) notify("PNG exported.");
       }
     });
   };
+  img.onerror = () => { URL.revokeObjectURL(url); notify('Could not render PNG. Export SVG instead.'); };
   img.src = url;
 }
 
@@ -1678,9 +1720,10 @@ $("#rotation-slider").addEventListener("input", (e) => {
   $("#rotation-val").textContent = String(n.rotation);
   queueDraw();
 });
+$('#rotation-slider').addEventListener('pointerdown', checkpoint);
+$('#rotation-slider').addEventListener('keydown', event => { if (event.key.startsWith('Arrow')) checkpoint(); });
 
 $("#rotation-slider").addEventListener("change", () => {
-  checkpoint();
   persist();
 });
 
@@ -1692,7 +1735,6 @@ $("#board-title").addEventListener("input", () => {
 });
 
 for (const [selector, prop] of [
-  ["#object-text", "text"],
   ["#fill-color", "fill"],
   ["#stroke-color", "stroke"],
   ["#font-size", "fontSize"],
@@ -1701,15 +1743,23 @@ for (const [selector, prop] of [
     const n = primaryNode();
     if (!n) return;
     checkpoint();
-    n[prop] = prop === "fontSize" ? Number($(selector).value) : $(selector).value;
+    if (prop === 'text') setObjectText(n, $(selector).value);
+    else n[prop] = prop === "fontSize" ? Number($(selector).value) : $(selector).value;
     changed();
   });
 }
 
+$('#object-text').addEventListener('focus', () => { if (primaryNode() && !primaryNode().locked) checkpoint(); });
+$('#object-text').addEventListener('input', event => {
+  const n = primaryNode();
+  if (!n || n.locked) return;
+  setObjectText(n, event.target.value); persist(); queueDraw();
+});
+
 $("#text-editor").addEventListener("close", () => {
   if ($("#text-editor").returnValue === "save" && primaryNode()) {
     checkpoint();
-    primaryNode().text = $("#edit-text").value;
+    setObjectText(primaryNode(), $("#edit-text").value);
     changed();
   }
 });
@@ -1873,6 +1923,7 @@ $("#image-file").onchange = async (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.target.closest("input,textarea,select,dialog")) return;
   const mod = event.ctrlKey || event.metaKey;
+  if (event.key === 'Enter' && selectedIds.size === 1) { event.preventDefault(); editText(); return; }
 
   if (event.code === "Space") {
     if (event.target.closest("button")) return;

@@ -1,3 +1,5 @@
+> Codex review (4 November 2026): Read [CODEX_VERIFICATION.md](CODEX_VERIFICATION.md) for tested behavior, corrected claims and remaining limits. Earlier source-only claims are not proof of feature parity.
+
 # Canvas Cloud Feature Parity Matrix
 
 Research targets: Miro (2026 desktop/web), Figma FigJam (2026), Excalidraw (v0.17+), Apple Freeform (macOS 15/iOS 18), Microsoft Whiteboard (Windows 11 / M365).

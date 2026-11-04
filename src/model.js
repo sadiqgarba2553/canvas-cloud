@@ -99,7 +99,10 @@ export function connectionEndpoints(a, b) {
  * Calculates elbow routing between two nodes
  */
 export function elbowConnectionPath(a, b) {
-  const [start, end] = connectionEndpoints(a, b);
+  const ac = center(a), bc = center(b);
+  const forward = bc.x >= ac.x;
+  const start = { x: forward ? a.x + a.w : a.x, y: ac.y };
+  const end = { x: forward ? b.x : b.x + b.w, y: bc.y };
   const midX = (start.x + end.x) / 2;
   return `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`;
 }
@@ -231,8 +234,11 @@ export function validateBoard(value) {
   copy.version = 2;
   copy.name = String(value.name || "Imported board").slice(0, 100);
   copy.id = uid();
-  copy.view = value.view && Number.isFinite(value.view.x) ? { ...value.view } : { x: 0, y: 0, scale: 1 };
-  copy.comments = Array.isArray(value.comments) ? value.comments : [];
+  copy.view = value.view && [value.view.x, value.view.y, value.view.scale].every(Number.isFinite) && value.view.scale >= 0.1 && value.view.scale <= 5 ? { ...value.view } : { x: 0, y: 0, scale: 1 };
+  copy.comments = (Array.isArray(value.comments) ? value.comments : []).slice(0, 1000).map(c => {
+    if (!c || ![c.x, c.y].every(Number.isFinite) || typeof c.text !== 'string') throw Error('Invalid comment.');
+    return { ...c, id: String(c.id || uid()).slice(0, 100), author: String(c.author || 'You').slice(0, 100), text: c.text.slice(0, 50000), replies: (Array.isArray(c.replies) ? c.replies : []).slice(0, 1000).map(r => ({ author: String(r?.author || 'You').slice(0, 100), text: String(r?.text || '').slice(0, 50000) })) };
+  });
   copy.groups = Array.isArray(value.groups) ? value.groups : [];
   copy.settings = {
     grid: true,
@@ -285,8 +291,7 @@ export function validateBoard(value) {
     if (n.type === "image") {
       if (
         typeof n.src !== "string" ||
-        (!n.src.startsWith("data:image/") && !n.src.startsWith("blob:") && !n.src.startsWith("http")) ||
-        n.src.includes("javascript:") ||
+        !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=\r\n]+$/.test(n.src) ||
         n.src.length > 25000000
       ) {
         throw Error("Unsupported image data.");
@@ -302,11 +307,12 @@ export function validateBoard(value) {
 
     // Table specific validation
     if (n.type === "table") {
-      n.rows = Number.isFinite(n.rows) ? Math.max(1, Math.min(50, n.rows)) : 3;
-      n.cols = Number.isFinite(n.cols) ? Math.max(1, Math.min(20, n.cols)) : 3;
+      n.rows = Number.isFinite(n.rows) ? Math.max(1, Math.min(50, Math.floor(n.rows))) : 3;
+      n.cols = Number.isFinite(n.cols) ? Math.max(1, Math.min(20, Math.floor(n.cols))) : 3;
       if (!Array.isArray(n.data)) {
         n.data = Array.from({ length: n.rows }, () => Array.from({ length: n.cols }, () => ""));
       }
+      n.data = Array.from({ length: n.rows }, (_, r) => Array.from({ length: n.cols }, (_, c) => String(n.data[r]?.[c] ?? '').slice(0, 5000)));
     }
 
     // Kanban specific validation
@@ -318,6 +324,7 @@ export function validateBoard(value) {
           { id: uid(), title: "Done", cards: ["Verified behavior"] },
         ];
       }
+      n.columns = n.columns.slice(0, 20).map(col => ({ id: String(col?.id || uid()), title: String(col?.title || '').slice(0, 100), cards: (Array.isArray(col?.cards) ? col.cards : []).slice(0, 200).map(card => String(typeof card === 'string' ? card : card?.title || '').slice(0, 5000)) }));
     }
 
     // Frame specific validation

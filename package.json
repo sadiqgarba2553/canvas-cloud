@@ -1,6 +1,6 @@
 {
   "name": "canvas-cloud",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Canvas Cloud — a local-first infinite whiteboard by BlueCloud",
@@ -12,7 +12,9 @@
     "preview": "vite preview --host 127.0.0.1 --port 1441",
     "test": "node --test tests/*.test.mjs",
     "desktop": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "release:prepare": "node tools/release.mjs prepare",
+    "release:publish": "node tools/release.mjs publish"
   },
   "devDependencies": {
     "vite": "8.3.5",

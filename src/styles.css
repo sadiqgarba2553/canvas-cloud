@@ -820,6 +820,8 @@ dialog > p {
   color: var(--purple);
 }
 
+[hidden] { display: none !important; }
+
 /* Search Bar Overlay */
 .search-overlay {
   position: absolute;

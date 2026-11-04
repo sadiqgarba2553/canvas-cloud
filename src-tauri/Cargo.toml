@@ -1,6 +1,6 @@
 [package]
 name = "canvas-cloud"
-version = "0.1.0"
+version = "0.2.0"
 description = "Canvas Cloud local-first infinite whiteboard"
 authors = ["BlueCloud AI Technologies"]
 edition = "2021"
