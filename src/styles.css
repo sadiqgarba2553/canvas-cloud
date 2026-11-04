@@ -780,3 +780,344 @@ dialog > p {
     transition: none !important;
   }
 }
+
+/* ==================== EXPANDED CANVAS CLOUD STYLES ==================== */
+
+/* Export Dropdown */
+.export-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 6px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(48, 33, 62, 0.12);
+  z-index: 100;
+  min-width: 200px;
+  flex-direction: column;
+  padding: 6px;
+}
+.dropdown-menu.show {
+  display: flex;
+}
+.dropdown-menu button {
+  border: 0;
+  text-align: left;
+  padding: 9px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  background: transparent;
+  width: 100%;
+}
+.dropdown-menu button:hover {
+  background: #f2eef8;
+  color: var(--purple);
+}
+
+/* Search Bar Overlay */
+.search-overlay {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 20px rgba(48, 33, 62, 0.12);
+  z-index: 15;
+}
+.search-overlay input {
+  border: 0;
+  outline: none;
+  font-size: 13px;
+  width: 220px;
+}
+.search-overlay span {
+  font-size: 11px;
+  color: #887d95;
+  white-space: nowrap;
+}
+.search-overlay button {
+  border: 0;
+  background: transparent;
+  padding: 4px 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.search-overlay button:hover {
+  background: #f0ecf6;
+}
+
+/* Topline & Buttons */
+.topline-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+}
+.subtle-btn {
+  border: 1px solid var(--line);
+  background: white;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  color: #7d7389;
+}
+.subtle-btn:hover {
+  background: #f2eef8;
+  color: var(--purple);
+}
+
+/* Minimap */
+.minimap-box {
+  position: absolute;
+  bottom: 68px;
+  right: 25px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 4px 16px rgba(48, 33, 62, 0.08);
+  z-index: 3;
+  pointer-events: auto;
+}
+.minimap-title {
+  font-size: 9px;
+  color: #988f9f;
+  margin-bottom: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+#minimap-canvas {
+  display: block;
+  border-radius: 6px;
+  background: #fbfbfe;
+  cursor: pointer;
+}
+#minimap-viewport {
+  position: absolute;
+  border: 1.5px solid var(--purple);
+  background: rgba(121, 80, 202, 0.15);
+  pointer-events: none;
+  border-radius: 2px;
+  top: 24px;
+  left: 6px;
+}
+
+/* Presentation Controls */
+.presentation-controls {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #251d30;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  pointer-events: auto;
+}
+.presentation-controls button {
+  background: #392f46;
+  color: white;
+  border: 0;
+  padding: 6px 12px;
+  border-radius: 16px;
+}
+.presentation-controls button:hover {
+  background: #504262;
+}
+.presentation-controls span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Align Controls */
+.align-controls {
+  margin: 16px 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.btn-group {
+  display: flex;
+  gap: 4px;
+}
+.btn-group button {
+  padding: 6px 4px;
+  font-size: 13px;
+  flex: 1;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+}
+
+/* Comments Section */
+.comments-sidebar {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.comment-card {
+  background: #fbf9fe;
+  border: 1px solid #e7e0f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+.comment-card strong {
+  color: var(--purple);
+  font-size: 11px;
+}
+.comment-card time {
+  font-size: 9px;
+  color: #9d94a6;
+  margin-left: 6px;
+}
+.comment-card p {
+  margin: 4px 0;
+  color: #40344c;
+}
+.comment-replies {
+  margin-top: 6px;
+  padding-left: 8px;
+  border-left: 2px solid #ddd3ea;
+}
+.comment-reply-input {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.comment-reply-input input {
+  flex: 1;
+  font-size: 11px;
+  padding: 4px 6px;
+  border: 1px solid #d9d0e5;
+  border-radius: 4px;
+}
+.comment-reply-input button {
+  padding: 3px 8px;
+  font-size: 10px;
+}
+
+/* Templates Grid */
+.dialog-sub {
+  font-size: 12px;
+  color: #8c7f99;
+  margin-top: -10px;
+  margin-bottom: 16px;
+}
+.template-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.t-card {
+  text-align: left;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 10px;
+  background: #fdfcff;
+  border: 1px solid #e5ddeee8;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.t-card:hover {
+  background: #f4eefc;
+  border-color: #baa4df;
+  transform: translateY(-1px);
+}
+.t-card strong {
+  font-size: 13px;
+  color: #4b3b5c;
+}
+.t-card small {
+  color: #8c7f98;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Dark Theme */
+body.dark-mode {
+  background: #15121b;
+  color: #ede7f5;
+  --line: #2b2436;
+}
+body.dark-mode .app-header {
+  background: #1b1723;
+  border-bottom-color: var(--line);
+}
+body.dark-mode .sidebar {
+  background: #18151f;
+  border-right-color: var(--line);
+}
+body.dark-mode .inspector {
+  background: #1b1723;
+  border-left-color: var(--line);
+}
+body.dark-mode .board-area {
+  background: #131018;
+}
+body.dark-mode button,
+body.dark-mode .subtle-btn,
+body.dark-mode .search-overlay,
+body.dark-mode .minimap-box,
+body.dark-mode dialog {
+  background: #231e2d;
+  color: #ede7f5;
+  border-color: #362e45;
+}
+body.dark-mode button:hover,
+body.dark-mode .subtle-btn:hover {
+  background: #312a3e;
+}
+body.dark-mode .toolbar {
+  background: #1e1927;
+  border-color: #362e45;
+}
+body.dark-mode .dropdown-menu {
+  background: #231e2d;
+  border-color: #362e45;
+}
+body.dark-mode .board-item.active {
+  background: #322846;
+  border-color: #473863;
+}
+body.dark-mode #canvas-bg {
+  fill: #131018;
+}
+body.dark-mode #dots circle {
+  fill: #2d2638;
+}
+body.dark-mode .t-card {
+  background: #211c2b;
+  border-color: #382f48;
+}
+body.dark-mode .t-card strong {
+  color: #d1bced;
+}
+body.dark-mode .t-card small {
+  color: #9c8eaf;
+}
+body.dark-mode .t-card:hover {
+  background: #2d243c;
+  border-color: #654e8e;
+}
