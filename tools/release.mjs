@@ -1,6 +1,6 @@
 // Each checkout publishes only its own application. No website-repository writes.
 import {readFile,writeFile,mkdir,stat,readdir,rename} from 'node:fs/promises';
-import {createReadStream,createWriteStream} from 'node:fs';
+import {createReadStream,createWriteStream,realpathSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {Readable} from 'node:stream';
@@ -77,5 +77,5 @@ async function main(){
   release=await api(`${base}/releases/${release.id}`,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({draft:false})});
   console.log('Published '+release.html_url);
 }
-if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))await main();
+if(process.argv[1]&&realpathSync(process.argv[1])===realpathSync(fileURLToPath(import.meta.url)))await main();
 export {main};
