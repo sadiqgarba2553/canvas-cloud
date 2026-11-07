@@ -5,7 +5,10 @@ import { readdir, stat } from 'node:fs/promises';
 
 const [repository, tag, directory, mode] = process.argv.slice(2);
 if (!repository || !tag || !directory) throw new Error('Expected repository, tag, asset directory and optional public mode');
-const response = spawnSync('gh', ['api', `repos/${repository}/releases/tags/${tag}`], { encoding: 'utf8' });
+const lookup = spawnSync('gh', ['release', 'view', tag, '--repo', repository, '--json', 'databaseId'], { encoding: 'utf8' });
+if (lookup.status !== 0) throw new Error('Could not find the Linux release');
+const releaseId = JSON.parse(lookup.stdout).databaseId;
+const response = spawnSync('gh', ['api', `repos/${repository}/releases/${releaseId}`], { encoding: 'utf8' });
 if (response.status !== 0) throw new Error('Could not inspect the release');
 const release = JSON.parse(response.stdout);
 const files = await readdir(directory);
