@@ -1,0 +1,9 @@
+import {readdir,stat,readFile,writeFile} from 'node:fs/promises';
+import {createReadStream} from 'node:fs';
+import {createHash} from 'node:crypto';
+import path from 'node:path';
+const [id,directory]=process.argv.slice(2),version=JSON.parse(await readFile('package.json')).version;
+if(!['doc-cloud','sheet-cloud','slide-cloud','canvas-cloud','tooldeck','launcher'].includes(id))throw Error('Unknown Linux application');
+const repository='sadiqgarba2553/'+(id==='launcher'?'bluecloud-launcher':id),names=(await readdir(directory)).filter(n=>n.endsWith('.AppImage'));
+if(names.length!==1)throw Error('Expected one AppImage');const file=path.join(directory,names[0]),hash=createHash('sha256');for await(const chunk of createReadStream(file))hash.update(chunk);
+await writeFile(path.join(directory,'app-release-linux.json'),JSON.stringify({appId:id,version,minimumLauncher:'0.8.0',platform:'linux',arch:'x64',packageType:'appimage',size:(await stat(file)).size,unpackedSize:(await stat(file)).size,sha256:hash.digest('hex'),url:`https://github.com/${repository}/releases/download/linux-v${version}/${encodeURIComponent(names[0])}`,repository,notes:'Linux x86_64 alpha; update through BlueCloud Launcher.'},null,2)+'\n');

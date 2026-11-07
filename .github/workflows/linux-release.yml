@@ -1,0 +1,117 @@
+name: Release Linux x64 alpha
+on:
+  push:
+    tags: ['linux-v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    env:
+      CARGO_BUILD_JOBS: 1
+      APP_ID: canvas-cloud
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      GDK_BACKEND: x11
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify repository and release tag
+        shell: bash
+        run: |
+          test "$GITHUB_REPOSITORY" = "sadiqgarba2553/canvas-cloud"
+          version=$(node -p "require('./package.json').version")
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$GITHUB_REF_NAME" = "linux-v$version"
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: linux-x64-canvas-cloud-${{ hashFiles('src-tauri/Cargo.lock') }}
+      - name: Install Linux build and startup-check dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev libayatana-appindicator3-dev patchelf libfuse2 xvfb dbus-x11 xdg-utils xdg-desktop-portal-gtk
+      - run: npm ci
+      - run: npm test
+      - name: Build Linux packages
+        run: npx tauri build --bundles deb,appimage
+      - name: Run native file-operation tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked -j 1
+      - name: Install, start and remove the Debian package
+        shell: bash
+        run: |
+          mkdir -p output/linux
+          mapfile -d '' packages < <(find src-tauri/target/release/bundle/deb -name '*.deb' -print0)
+          test "${#packages[@]}" -eq 1
+          sudo apt-get install -y "./${packages[0]}"
+          ldd "/usr/bin/$APP_ID" | tee output/linux/shared-libraries.txt
+          ! grep -q 'not found' output/linux/shared-libraries.txt
+          dbus-run-session -- xvfb-run -a bash tools/linux-smoke.sh "/usr/bin/$APP_ID" output/linux/debian-startup.log
+          package_name=$(dpkg-deb --field "${packages[0]}" Package)
+          sudo apt-get remove -y "$package_name"
+      - name: Start the extracted AppImage
+        shell: bash
+        run: |
+          mapfile -d '' images < <(find src-tauri/target/release/bundle/appimage -name '*.AppImage' -print0)
+          test "${#images[@]}" -eq 1
+          chmod +x "${images[0]}"
+          "${images[0]}" --appimage-extract >/dev/null
+          dbus-run-session -- xvfb-run -a bash tools/linux-smoke.sh "$PWD/squashfs-root/AppRun" output/linux/appimage-startup.log
+      - name: Collect release files
+        shell: bash
+        run: |
+          mkdir dist-linux
+          find src-tauri/target/release/bundle -type f \( -name '*.deb' -o -name '*.AppImage' \) -exec cp {} dist-linux/ \;
+          cp docs/LINUX-RELEASE.md dist-linux/LINUX-README.md
+          node tools/linux-metadata.mjs canvas-cloud dist-linux
+          cd dist-linux
+          sha256sum -- *.deb *.AppImage app-release-linux.json LINUX-README.md > SHA256SUMS-linux-x64.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: dist-linux/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-validation
+          path: output/linux/
+          if-no-files-found: ignore
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/linux-v')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-x64
+          path: dist-linux
+      - name: Publish verified Linux alpha assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          test "$GITHUB_REPOSITORY" = "sadiqgarba2553/canvas-cloud"
+          node tools/linux-metadata.mjs canvas-cloud dist-linux
+          cd dist-linux
+          sha256sum --check SHA256SUMS-linux-x64.txt
+          cd ..
+          gh release create "$GITHUB_REF_NAME" dist-linux/* --verify-tag --target "$GITHUB_SHA" --title "Canvas Cloud 0.2.0 — Linux x64 alpha" --notes-file docs/LINUX-RELEASE.md --draft --prerelease --latest=false
+          node tools/verify-linux-assets.mjs "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" dist-linux
+          gh release edit "$GITHUB_REF_NAME" --draft=false --prerelease --latest=false
+          node tools/verify-linux-assets.mjs "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" dist-linux public
